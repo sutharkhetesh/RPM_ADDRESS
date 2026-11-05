@@ -4,9 +4,9 @@ export function RpmBrand() {
     <span className="rpm-brand">
       <span className="rpm-logo-crop">
         <Image
-          src="/rpm-logo.png"
-          width={1191}
-          height={896}
+          src="/rpm-logo-transparent.png"
+          width={1446}
+          height={1088}
           sizes="280px"
           alt="RPM Eyewear"
           priority

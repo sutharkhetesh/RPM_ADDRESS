@@ -379,7 +379,7 @@ test("theme-aware login design, password visibility and sidebar without account 
   await expect(logo).toBeVisible();
   await expect(logo).toHaveJSProperty("complete", true);
   expect(await logo.evaluate((el) => getComputedStyle(el).mixBlendMode)).toBe(
-    "multiply",
+    "normal",
   );
   await page.screenshot({
     path: "test-results/login-light-desktop.png",
@@ -389,17 +389,31 @@ test("theme-aware login design, password visibility and sidebar without account 
     .getByRole("button", { name: "Toggle light and dark mode" })
     .click();
   await expect(page.locator("html")).toHaveClass(/dark/);
-  expect(await logo.evaluate((el) => getComputedStyle(el).filter)).toContain(
-    "invert(1)",
-  );
+  expect(await logo.evaluate((el) => getComputedStyle(el).filter)).toBe("none");
   expect(await logo.evaluate((el) => getComputedStyle(el).mixBlendMode)).toBe(
-    "screen",
+    "normal",
   );
   expect(
     await page
       .locator(".rpm-logo-crop")
       .evaluate((el) => getComputedStyle(el).backgroundColor),
   ).toBe("rgba(0, 0, 0, 0)");
+  expect(await logo.evaluate((el) => getComputedStyle(el).clipPath)).toBe(
+    "inset(0px 0px 0px 74%)",
+  );
+  const lettering = await page
+    .locator(".auth-form-brand .rpm-logo-crop")
+    .evaluate((el) => {
+      const style = getComputedStyle(el, "::after");
+      return {
+        color: style.backgroundColor,
+        mask: style.maskImage,
+        clip: style.clipPath,
+      };
+    });
+  expect(lettering.color).toBe("rgb(255, 255, 255)");
+  expect(lettering.mask).toContain("/rpm-logo-transparent.png");
+  expect(lettering.clip).toBe("inset(0px 26% 0px 0px)");
   await page.screenshot({
     path: "test-results/login-dark-desktop.png",
     fullPage: true,
