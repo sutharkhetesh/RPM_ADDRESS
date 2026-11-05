@@ -57,8 +57,8 @@ Apply migrations using `npm run db:deploy`. Historical migrations are retained u
 
 ## Preserved features
 
-- Dashboard statistics and recent addresses; BOTH counts in shipping and billing totals.
-- Create, view, edit and delete addresses; purpose/label selection and independent defaults.
+- Overview statistics and a complete searchable, paginated address book; BOTH counts in shipping and billing totals. Shipping and Billing remain separate navigation items.
+- Create, view, edit and delete addresses. The top address-type card defaults to the Shipping or Billing tab used to open the form. Existing labels and default flags remain stored; the simplified add/edit form does not expose these controls.
 - Case-insensitive server-side search across 12 fields, 350 ms debounce, URL state, filtering, five sort orders and pagination at 10/20/50 records per page.
 - Responsive table/mobile cards, light/dark theme, loading states, confirmation dialogs and toast feedback.
 - Ownership-checked A4, 4×6 and compact print previews, shipping/billing layouts and jsPDF export. Browser printing supports international scripts; jsPDF uses built-in Latin fonts.
@@ -91,6 +91,7 @@ tests/                           Unit, real PostgreSQL and browser tests
 ## Verification
 
 ```bash
+npm run lint
 npm run typecheck
 npm test
 npm run build
@@ -113,5 +114,13 @@ npm start
 
 Use HTTPS and a Node.js Next.js host with `DATABASE_URL` configured. The runtime pool allows five database connections per process. The build uses Next's supported Webpack option for restricted environments. No production seed command creates user accounts or credentials.
 
-# RPM_ADDRESS
-# RPM_ADDRESS
+## Quality and reliability
+
+- Shared light/dark tokens, readable typography, consistent form cards, responsive tables/cards and reduced-motion support.
+- Keyboard-accessible mobile navigation with focus containment, Escape dismissal, scroll locking and a skip link.
+- Address forms validate inline, preserve input on network errors and disable controls while saving. Mutations guard against repeated submissions; the optional setup restores the billing draft when copied shipping is unchecked.
+- Remote PostgreSQL connections always verify TLS, including when no custom CA file exists. An explicit `sslrootcert` takes precedence over the default certificate.
+- Session lookup is memoized within a server render. Dashboard statistics use one grouped database query; PDF generation remains loaded on demand.
+- `npm run lint` checks formatting using the existing Prettier dependency. Generated files are excluded from formatting. No ESLint dependency is installed.
+
+The browser suite requires a production build first. To use an existing Chrome installation, run `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/path/to/chrome npm run test:e2e`. Builds and tests require child-process and localhost permissions; a restricted sandbox can prevent these tools from running. Test databases are temporary and never use live Supabase data.

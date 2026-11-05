@@ -1,6 +1,11 @@
 export default function Loading() {
   return (
-    <div aria-label="Loading workspace" className="space-y-6 animate-pulse">
+    <div
+      role="status"
+      aria-label="Loading workspace"
+      className="space-y-6 animate-pulse"
+    >
+      <span className="sr-only">Loading your workspace…</span>
       <div className="h-10 w-60 bg-muted rounded-lg" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {[1, 2, 3, 4].map((i) => (

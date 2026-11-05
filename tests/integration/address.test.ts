@@ -43,6 +43,10 @@ afterAll(async () => {
   await db.$disconnect();
 });
 describe("Real PostgreSQL address lifecycle", () => {
+  it("rejects an empty edit ID without creating an address", async () => {
+    await expect(saveForUser(db, owner, input, "")).rejects.toThrow();
+    expect(await db.address.count({ where: { userId: owner } })).toBe(0);
+  });
   it("persists, reads, updates and deletes an address", async () => {
     const a = await saveForUser(db, owner, input);
     expect(

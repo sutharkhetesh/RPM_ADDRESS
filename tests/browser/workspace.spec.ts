@@ -118,7 +118,10 @@ test("signup → copied shipping/billing → dashboard, CRUD, print, PDF and own
   await expect(page).toHaveURL(/dashboard/);
   await page.goto("/addresses");
   await expect(page.locator(".table-wrap tbody tr")).toHaveCount(2);
-  await page.getByRole("button", { name: "Shipping", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Shipping", exact: true })
+    .click();
   await expect(page).toHaveURL(/filter=shipping/);
   await expect(page.locator(".table-wrap tbody tr")).toHaveCount(1);
   await page.getByLabel("Search addresses").fill("NoMatch12345");
@@ -436,6 +439,8 @@ test("overview lists all addresses and keeps shipping and billing navigation", a
   await signup(page, account("Overview Customer"));
   await sameAddressSetup(page);
   const nav = page.getByRole("navigation", { name: "Main navigation" });
+  const stats = page.locator(".stat-card > strong");
+  await expect(stats).toHaveText(["2", "1", "1", "2"]);
   await expect(
     nav.getByRole("link", { name: "All addresses", exact: true }),
   ).toHaveCount(0);
@@ -464,4 +469,94 @@ test("overview lists all addresses and keeps shipping and billing navigation", a
   }
   await page.goto("/addresses");
   await expect(page).toHaveURL(/\/dashboard$/);
+});
+
+test("address validation, network failure and retry preserve entered details", async ({
+  page,
+}) => {
+  const user = account("Retry Customer");
+  await signup(page, user, false);
+  await page.getByRole("link", { name: "Add address", exact: true }).click();
+  await page.getByRole("button", { name: "Save address", exact: true }).click();
+  await expect(
+    page.getByText("Enter a full name", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Full name", exact: true })
+    .fill(user.name);
+  await fillAddress(page);
+  await page.route("**/addresses/new", async (route) => {
+    if (route.request().method() === "POST") await route.abort("failed");
+    else await route.continue();
+  });
+  await page.getByRole("button", { name: "Save address", exact: true }).click();
+  await expect(
+    page.getByText("Unable to save. Check your connection and try again.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "Full name", exact: true }),
+  ).toHaveValue(user.name);
+  await expect(
+    page.getByRole("button", { name: "Save address", exact: true }),
+  ).toBeEnabled();
+  await page.unroute("**/addresses/new");
+  await page.getByRole("button", { name: "Save address", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.locator(".table-wrap tbody tr")).toHaveCount(1);
+});
+
+test("mobile navigation supports keyboard dismissal and the workspace fits narrow screens", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await signup(page, account("Keyboard Customer"), false);
+  const menu = page.getByRole("button", { name: "Open navigation" });
+  await menu.click();
+  await expect(
+    page.getByRole("dialog", { name: "Workspace navigation" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Close navigation" }),
+  ).toBeFocused();
+  await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeFocused();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.getByRole("link", { name: "Add address", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Address type", exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: "test-results/address-form-mobile.png",
+    fullPage: true,
+  });
+});
+
+test("uncopying shipping restores the billing draft", async ({ page }) => {
+  await signup(page, account("Billing Draft Customer"));
+  await fillAddress(page);
+  await page.getByRole("button", { name: "Continue to billing" }).click();
+  const street = page.getByRole("textbox", {
+    name: "Address line 1",
+    exact: true,
+  });
+  await street.fill("44 Independent Billing Lane");
+  const same = page.getByRole("checkbox", { name: /Same as Shipping Address/ });
+  await same.check();
+  await expect(street).toHaveValue("12 Shipping Road");
+  await same.uncheck();
+  await expect(street).toHaveValue("44 Independent Billing Lane");
+  await expect(street).toBeEnabled();
 });

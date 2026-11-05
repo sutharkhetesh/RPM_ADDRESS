@@ -52,11 +52,9 @@ export function DefaultBadge({
 }
 export function AddressList({
   addresses,
-  compact = false,
   filtered = false,
 }: {
   addresses: Address[];
-  compact?: boolean;
   filtered?: boolean;
 }) {
   if (!addresses.length)
@@ -76,7 +74,7 @@ export function AddressList({
             : "Add your first address. Keep the details close, wherever life takes you."}
         </p>
         <Button asChild className="mt-5">
-          <Link href={filtered ? "/addresses" : "/addresses/new"}>
+          <Link href={filtered ? "/dashboard" : "/addresses/new"}>
             {filtered ? (
               "Clear filters"
             ) : (
@@ -93,14 +91,19 @@ export function AddressList({
     <>
       <div className="table-wrap">
         <table>
+          <caption className="sr-only">
+            Saved addresses and available actions
+          </caption>
           <thead>
             <tr>
-              <th>NAME / CONTACT</th>
-              <th>ADDRESS</th>
-              <th>TYPE</th>
-              <th>DEFAULT</th>
-              {!compact && <th>ADDED ON</th>}
-              <th className="text-right">ACTIONS</th>
+              <th scope="col">NAME / CONTACT</th>
+              <th scope="col">ADDRESS</th>
+              <th scope="col">TYPE</th>
+              <th scope="col">DEFAULT</th>
+              <th scope="col">ADDED ON</th>
+              <th scope="col" className="text-right">
+                ACTIONS
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -155,11 +158,9 @@ export function AddressList({
                 <td>
                   <DefaultBadge a={a} />
                 </td>
-                {!compact && (
-                  <td className="date-cell">
-                    {format(a.createdAt, "dd MMM yyyy")}
-                  </td>
-                )}
+                <td className="date-cell">
+                  {format(a.createdAt, "dd MMM yyyy")}
+                </td>
                 <td>
                   <AddressActions id={a.id} name={a.fullName} />
                 </td>

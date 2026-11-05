@@ -1,11 +1,28 @@
 "use client";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider, useTheme } from "next-themes";
 import { Toaster } from "sonner";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       {children}
-      <Toaster richColors position="bottom-right" closeButton />
+      <WorkspaceToaster />
     </ThemeProvider>
+  );
+}
+
+function WorkspaceToaster() {
+  const { resolvedTheme } = useTheme();
+  return (
+    <Toaster
+      theme={resolvedTheme === "dark" ? "dark" : "light"}
+      richColors
+      position="bottom-right"
+      closeButton
+    />
   );
 }

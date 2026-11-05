@@ -7,15 +7,17 @@ export default function ErrorBoundary({
   reset: () => void;
 }) {
   return (
-    <main className="p-10 max-w-lg mx-auto">
-      <h1 className="text-2xl font-semibold mb-3">
-        We couldn’t load your workspace.
-      </h1>
-      <p className="text-muted-foreground mb-6">
-        Please try again. If the issue continues, check the database connection
-        and migrations.
-      </p>
-      <Button onClick={reset}>Try again</Button>
+    <main className="auth-wrap">
+      <div className="auth-panel" role="alert">
+        <h1 className="text-2xl font-semibold mb-3">
+          We couldn’t load your workspace.
+        </h1>
+        <p className="text-muted-foreground mb-6">
+          Please try again. If the issue continues, wait a moment and reload the
+          page.
+        </p>
+        <Button onClick={reset}>Try again</Button>
+      </div>
     </main>
   );
 }

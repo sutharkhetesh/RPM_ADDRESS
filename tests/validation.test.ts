@@ -44,6 +44,13 @@ describe("Address validation", () => {
       addressSchema.safeParse({ ...valid, alternatePhone: "abcdefg" }).success,
     ).toBe(false);
   });
+  it("trims optional email addresses before validating", () => {
+    expect(
+      addressSchema.parse({ ...valid, email: "  contact@example.test  " })
+        .email,
+    ).toBe("contact@example.test");
+    expect(addressSchema.parse({ ...valid, email: "   " }).email).toBe("");
+  });
   it("rejects conflicting default types", () => {
     expect(
       addressSchema.safeParse({

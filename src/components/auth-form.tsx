@@ -1,5 +1,6 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 import Link from "next/link";
 import { RpmBrand } from "@/components/rpm-brand";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -89,6 +90,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [message, setMessage] = useState(""),
     [pending, start] = useTransition();
   const signup = mode === "signup";
+  const submitting = useRef(false);
   return (
     <main className="auth-page">
       <div className="auth-content">
@@ -182,16 +184,27 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             }}
             onSubmit={(e) => {
               e.preventDefault();
+              if (submitting.current) return;
+              submitting.current = true;
               const data = new FormData(e.currentTarget);
               setMessage("");
               start(async () => {
-                const r = await authenticate(mode, {
-                  fullName: data.get("fullName"),
-                  confirmPassword: data.get("confirmPassword"),
-                  email: data.get("email"),
-                  password: data.get("password"),
-                });
-                setMessage(r.error ?? "");
+                try {
+                  const r = await authenticate(mode, {
+                    fullName: data.get("fullName"),
+                    confirmPassword: data.get("confirmPassword"),
+                    email: data.get("email"),
+                    password: data.get("password"),
+                  });
+                  setMessage(r.error ?? "");
+                } catch (error) {
+                  unstable_rethrow(error);
+                  setMessage(
+                    "Unable to connect. Check your connection and try again.",
+                  );
+                } finally {
+                  submitting.current = false;
+                }
               });
             }}
           >

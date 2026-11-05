@@ -7,6 +7,7 @@ export function RpmBrand() {
           src="/rpm-logo.png"
           width={1191}
           height={896}
+          sizes="280px"
           alt="RPM Eyewear"
           priority
         />

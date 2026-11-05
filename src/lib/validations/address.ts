@@ -12,7 +12,10 @@ export const addressSchema = z
   .object({
     fullName: z.string().trim().min(2, "Enter a full name").max(120),
     companyName: optional(160),
-    email: z.union([z.literal(""), z.email()]).transform((v) => v.trim()),
+    email: z
+      .string()
+      .trim()
+      .pipe(z.union([z.literal(""), z.email()])),
     phone,
     alternatePhone: z.union([z.literal(""), phone]),
     addressLine1: z.string().trim().min(3, "Enter a street address").max(250),

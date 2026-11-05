@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { unstable_rethrow, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, LoaderCircle, Check, Tags } from "lucide-react";
@@ -28,6 +28,7 @@ export function AddressForm({
     defaultValues: initial ?? emptyAddress,
   });
   const type = form.watch("addressType");
+  const submitting = useRef(false);
   useEffect(() => {
     if (type === "BILLING") form.setValue("isDefaultShipping", false);
     if (type === "SHIPPING") form.setValue("isDefaultBilling", false);
@@ -47,46 +48,63 @@ export function AddressForm({
       </div>
       <form
         className="address-form"
+        noValidate
+        aria-busy={pending}
         onSubmit={form.handleSubmit((data) =>
           start(async () => {
-            const result = await saveAddress(data, id);
-            if (!result.success) {
-              toast.error(result.error);
-              return;
+            if (submitting.current) return;
+            submitting.current = true;
+            try {
+              const result = await saveAddress(data, id);
+              if (!result.success) {
+                toast.error(result.error);
+                return;
+              }
+              toast.success(id ? "Address updated" : "Address added");
+              router.push("/dashboard");
+              router.refresh();
+            } catch (error) {
+              unstable_rethrow(error);
+              toast.error(
+                "Unable to save. Check your connection and try again.",
+              );
+            } finally {
+              submitting.current = false;
             }
-            toast.success(id ? "Address updated" : "Address added");
-            router.push("/addresses");
-            router.refresh();
           }),
         )}
       >
-        <section className="form-section">
-          <div className="section-label">
-            <Tags size={19} />
-            <div>
-              <h2>Address type</h2>
-              <p>Choose how you’ll use this address.</p>
+        <fieldset disabled={pending} className="address-fieldset">
+          <legend className="sr-only">Address information</legend>
+          <section className="form-section">
+            <div className="section-label">
+              <Tags size={19} />
+              <div>
+                <h2>Address type</h2>
+                <p>Choose how you’ll use this address.</p>
+              </div>
             </div>
-          </div>
-          <div className="form-grid">
-            <label className="field">
-              Address type
-              <select {...form.register("addressType")}>
-                <option value="SHIPPING">Shipping</option>
-                <option value="BILLING">Billing</option>
-                <option value="BOTH">Shipping & billing</option>
-              </select>
-            </label>
-          </div>
-        </section>
-        <AddressFields form={form} />
+            <div className="form-grid">
+              <div className="field">
+                <label htmlFor="address-type">Address type</label>
+                <select id="address-type" {...form.register("addressType")}>
+                  <option value="SHIPPING">Shipping</option>
+                  <option value="BILLING">Billing</option>
+                  <option value="BOTH">Shipping & billing</option>
+                </select>
+              </div>
+            </div>
+          </section>
+          <AddressFields form={form} />
+        </fieldset>
         <div className="form-footer">
           <p>* Required fields</p>
           <div className="flex gap-3">
             <Button
               variant="outline"
               type="button"
-              onClick={() => router.push("/addresses")}
+              disabled={pending}
+              onClick={() => router.push("/dashboard")}
             >
               Cancel
             </Button>

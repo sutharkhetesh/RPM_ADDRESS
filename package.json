@@ -18,7 +18,8 @@
     "db:deploy": "prisma migrate deploy",
     "postinstall": "prisma generate",
     "test:e2e": "playwright test",
-    "format": "prettier --write src tests *.ts *.json *.mjs README.md",
+    "lint": "prettier --check src tests scripts *.ts *.json *.mjs README.md",
+    "format": "prettier --write src tests scripts *.ts *.json *.mjs README.md",
     "db:check": "node scripts/check-database.mjs"
   },
   "dependencies": {

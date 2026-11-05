@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X, SlidersHorizontal, LoaderCircle } from "lucide-react";
 const filters = [
@@ -21,25 +21,32 @@ export function AddressFilters({
   const latest = useRef(params);
   latest.current = params;
   useEffect(() => setText(urlQuery), [urlQuery]);
-  function update(key: string, value: string) {
-    const next = new URLSearchParams(latest.current.toString());
-    value ? next.set(key, value) : next.delete(key);
-    next.delete("page");
-    start(() =>
-      router.replace(`${basePath}?${next.toString()}`, { scroll: false }),
-    );
-  }
+  const update = useCallback(
+    (key: string, value: string) => {
+      if ((latest.current.get(key) ?? "") === value) return;
+      const next = new URLSearchParams(latest.current.toString());
+      value ? next.set(key, value) : next.delete(key);
+      next.delete("page");
+      start(() =>
+        router.replace(`${basePath}?${next.toString()}`, { scroll: false }),
+      );
+    },
+    [basePath, router],
+  );
   useEffect(() => {
     if (text === urlQuery) return;
     const timer = setTimeout(() => update("q", text), 350);
     return () => clearTimeout(timer);
-  }, [text, urlQuery]);
+  }, [text, urlQuery, update]);
   return (
     <div className="filters">
       {showTabs && (
         <div className="filter-tabs" aria-label="Filter addresses">
           {filters.map(([value, label]) => (
             <button
+              type="button"
+              aria-pressed={(params.get("filter") ?? "") === value}
+              disabled={pending}
               key={value}
               onClick={() => update("filter", value)}
               className={
@@ -56,6 +63,7 @@ export function AddressFilters({
           <Search size={17} />
           <input
             aria-label="Search addresses"
+            maxLength={200}
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Search names, cities, PIN codes…"
@@ -64,7 +72,11 @@ export function AddressFilters({
             <LoaderCircle size={16} className="animate-spin" />
           ) : (
             text && (
-              <button onClick={() => setText("")} aria-label="Clear search">
+              <button
+                type="button"
+                onClick={() => setText("")}
+                aria-label="Clear search"
+              >
                 <X size={15} />
               </button>
             )
@@ -97,6 +109,9 @@ export function AddressFilters({
           ))}
         </select>
       </div>
+      <span className="sr-only" role="status">
+        {pending ? "Updating addresses…" : ""}
+      </span>
     </div>
   );
 }

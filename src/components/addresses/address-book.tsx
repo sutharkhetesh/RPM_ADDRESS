@@ -84,12 +84,7 @@ export async function AddressBook({
               : "0 addresses"}
           </p>
           <div className="flex gap-2 items-center">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              disabled={query.page <= 1}
-            >
+            <Button asChild variant="outline" size="sm">
               <Link
                 aria-disabled={query.page <= 1}
                 tabIndex={query.page <= 1 ? -1 : 0}

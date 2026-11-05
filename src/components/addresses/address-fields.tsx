@@ -2,6 +2,20 @@
 import { UserRound, MapPin } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { AddressInput } from "@/lib/validations/address";
+const inputAttributes: Partial<
+  Record<keyof AddressInput, { autoComplete?: string; maxLength: number }>
+> = {
+  fullName: { autoComplete: "name", maxLength: 120 },
+  companyName: { autoComplete: "organization", maxLength: 160 },
+  phone: { autoComplete: "tel", maxLength: 24 },
+  addressLine1: { autoComplete: "address-line1", maxLength: 250 },
+  addressLine2: { autoComplete: "address-line2", maxLength: 250 },
+  landmark: { maxLength: 160 },
+  city: { autoComplete: "address-level2", maxLength: 100 },
+  state: { autoComplete: "address-level1", maxLength: 100 },
+  postalCode: { autoComplete: "postal-code", maxLength: 20 },
+  country: { autoComplete: "country-name", maxLength: 100 },
+};
 export function AddressFields({
   form,
   prefix = "address",
@@ -36,6 +50,7 @@ export function AddressFields({
         <input
           id={fieldId}
           {...register(name)}
+          {...inputAttributes[name]}
           type={type}
           required={required}
           placeholder={placeholder}

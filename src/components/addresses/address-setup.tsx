@@ -1,5 +1,6 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -36,6 +37,12 @@ export function AddressSetup({
     resolver: zodResolver(addressSchema),
     defaultValues: billingInitial,
   });
+  const submitting = useRef(false);
+  const previousBilling = useRef<AddressInput | null>(null);
+  const stepTitle = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    stepTitle.current?.focus({ preventScroll: true });
+  }, [step]);
   function copyShipping() {
     billing.reset({
       ...shipping.getValues(),
@@ -46,13 +53,22 @@ export function AddressSetup({
   }
   function save() {
     start(async () => {
+      if (submitting.current) return;
+      submitting.current = true;
       setMessage("");
-      const result = await finishAddressSetup({
-        shipping: shipping.getValues(),
-        billing: billing.getValues(),
-        sameAsShipping: same,
-      });
-      if (result?.error) setMessage(result.error);
+      try {
+        const result = await finishAddressSetup({
+          shipping: shipping.getValues(),
+          billing: billing.getValues(),
+          sameAsShipping: same,
+        });
+        if (result?.error) setMessage(result.error);
+      } catch (error) {
+        unstable_rethrow(error);
+        setMessage("Unable to save. Check your connection and try again.");
+      } finally {
+        submitting.current = false;
+      }
     });
   }
   return (
@@ -93,7 +109,7 @@ export function AddressSetup({
             Billing address
           </li>
         </ol>
-        <h2 className="onboarding-step-title" tabIndex={-1}>
+        <h2 ref={stepTitle} className="onboarding-step-title" tabIndex={-1}>
           {step === 1
             ? "Add your shipping address"
             : "Add your billing address"}
@@ -119,8 +135,10 @@ export function AddressSetup({
           </form>
         ) : (
           <form
+            aria-busy={pending}
             onSubmit={async (e) => {
               e.preventDefault();
+              if (pending || submitting.current) return;
               if (same) {
                 copyShipping();
                 save();
@@ -133,10 +151,16 @@ export function AddressSetup({
             <label className="same-shipping">
               <input
                 type="checkbox"
+                disabled={pending}
                 checked={same}
                 onChange={(e) => {
                   setSame(e.target.checked);
-                  if (e.target.checked) copyShipping();
+                  if (e.target.checked) {
+                    previousBilling.current = billing.getValues();
+                    copyShipping();
+                  } else {
+                    billing.reset(previousBilling.current ?? billingInitial);
+                  }
                 }}
               />
               <span>

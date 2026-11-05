@@ -1,5 +1,6 @@
 "use client";
-import { useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 import Link from "next/link";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { Pencil, Printer, Trash2, LoaderCircle, FileDown } from "lucide-react";
@@ -8,6 +9,8 @@ import { deleteAddress } from "@/actions/address.actions";
 import { Button } from "@/components/ui/button";
 export function AddressActions({ id, name }: { id: string; name: string }) {
   const [pending, start] = useTransition();
+  const [open, setOpen] = useState(false);
+  const submitting = useRef(false);
   return (
     <div className="flex items-center gap-1">
       <Button asChild variant="ghost" size="icon">
@@ -37,7 +40,12 @@ export function AddressActions({ id, name }: { id: string; name: string }) {
           <FileDown size={15} />
         </Link>
       </Button>
-      <AlertDialog.Root>
+      <AlertDialog.Root
+        open={open}
+        onOpenChange={(value) => {
+          if (!pending) setOpen(value);
+        }}
+      >
         <AlertDialog.Trigger asChild>
           <Button
             variant="ghost"
@@ -73,14 +81,30 @@ export function AddressActions({ id, name }: { id: string; name: string }) {
                 disabled={pending}
                 onClick={() =>
                   start(async () => {
-                    const result = await deleteAddress(id);
-                    if (result.success) toast.success("Address deleted");
-                    else toast.error(result.error);
+                    if (submitting.current) return;
+                    submitting.current = true;
+                    try {
+                      const result = await deleteAddress(id);
+                      if (result.success) {
+                        setOpen(false);
+                        toast.success("Address deleted");
+                      } else toast.error(result.error);
+                    } catch (error) {
+                      unstable_rethrow(error);
+                      toast.error(
+                        "Unable to delete. Check your connection and try again.",
+                      );
+                    } finally {
+                      submitting.current = false;
+                    }
                   })
                 }
               >
                 {pending ? (
-                  <LoaderCircle size={16} className="animate-spin" />
+                  <>
+                    <LoaderCircle size={16} className="animate-spin" />
+                    Deleting…
+                  </>
                 ) : (
                   "Delete address"
                 )}

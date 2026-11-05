@@ -8,7 +8,7 @@ export async function saveForUser(
   id?: string,
 ) {
   const data = addressSchema.parse(input);
-  if (id) z.uuid().parse(id);
+  if (id !== undefined) z.uuid().parse(id);
   return db.$transaction(async (tx) => {
     // Serialize address defaults and onboarding saves for this user.
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${userId},0))`;

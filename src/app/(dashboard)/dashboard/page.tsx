@@ -25,21 +25,23 @@ export default async function Dashboard({
   const user = await requireUser(),
     db = database(),
     where = { userId: user.id };
-  const [total, shipping, billing, defaults] = await db.$transaction([
-    db.address.count({ where }),
-    db.address.count({
-      where: { ...where, addressType: { in: ["SHIPPING", "BOTH"] } },
-    }),
-    db.address.count({
-      where: { ...where, addressType: { in: ["BILLING", "BOTH"] } },
-    }),
-    db.address.count({
-      where: {
-        ...where,
-        OR: [{ isDefaultShipping: true }, { isDefaultBilling: true }],
-      },
-    }),
-  ]);
+  const groups = await db.address.groupBy({
+    by: ["addressType", "isDefaultShipping", "isDefaultBilling"],
+    where,
+    _count: { _all: true },
+  });
+  const { total, shipping, billing, defaults } = groups.reduce(
+    (counts, group) => {
+      const count = group._count._all;
+      counts.total += count;
+      if (group.addressType !== "BILLING") counts.shipping += count;
+      if (group.addressType !== "SHIPPING") counts.billing += count;
+      if (group.isDefaultShipping || group.isDefaultBilling)
+        counts.defaults += count;
+      return counts;
+    },
+    { total: 0, shipping: 0, billing: 0, defaults: 0 },
+  );
   const stats = [
     {
       label: "Total addresses",
@@ -169,10 +171,10 @@ export default async function Dashboard({
             <Star size={22} />
           </span>
           <div>
-            <h3>Your favorites, first.</h3>
+            <h3>The right address, faster.</h3>
             <p>
-              Set your default shipping and billing addresses to keep everyday
-              work simple.
+              Search by name, city or PIN code, or use Shipping and Billing to
+              find the address you need.
             </p>
           </div>
         </div>
