@@ -67,7 +67,8 @@ Apply migrations using `npm run db:deploy`. Historical migrations are retained u
 
 - Supabase hosts PostgreSQL; the existing local email/password authentication remains in place.
 - Node.js scrypt hashes passwords with random salts and constant-time comparisons. Plaintext passwords are never stored.
-- Sessions use random 256-bit tokens; only token hashes are stored. Cookies are HttpOnly, SameSite=Lax, Secure in production, and expire after seven days. Logout revokes the database session.
+- Sessions use random 256-bit tokens; only token hashes are stored. Cookies are HttpOnly, SameSite=Lax, Secure in production, and persist across browser restarts for 30 days. Active dashboard/onboarding sessions renew to 30 days at most once daily, checked on page load, window focus and hourly while visible. Expired or revoked sessions cannot renew. Logout revokes the database session and clears the cookie. No authentication tokens are stored in localStorage/sessionStorage.
+- `/`, `/login` and `/signup` verify the database session and redirect authenticated users to `/dashboard`. Protected routes restore identity from the cookie on each server request. No schema migration or new environment variable is needed for persistent login.
 - Authentication attempts are throttled in PostgreSQL across replicas.
 - Server Actions derive user identity from a verified database session. Client-submitted user IDs are never trusted.
 - Per-user advisory transaction locks coordinate onboarding and default changes. Partial unique indexes enforce default uniqueness independently of the application.

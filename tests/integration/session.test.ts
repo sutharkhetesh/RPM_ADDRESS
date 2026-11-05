@@ -6,6 +6,9 @@ import {
   sessionUser,
   revokeSession,
   consumeAuthAttempt,
+  createSession,
+  renewSession,
+  SESSION_SECONDS,
 } from "@/lib/session-service";
 import { digestToken, verifyPassword } from "@/lib/password";
 let db: PrismaClient;
@@ -71,6 +74,41 @@ describe("Database-only account and session lifecycle", () => {
   it("rejects forged and malformed tokens", async () => {
     expect(await sessionUser(db, "0".repeat(64))).toBeNull();
     expect(await sessionUser(db, "arbitrary-client-user-id")).toBeNull();
+  });
+  it("keeps sessions for 30 days and renews active sessions with the same identity", async () => {
+    const user = await db.user.findUniqueOrThrow({ where: { email } });
+    const result = await createSession(db, user.id);
+    expect(result.expiresAt.getTime() - Date.now()).toBeGreaterThan(
+      (SESSION_SECONDS - 5) * 1000,
+    );
+    expect(SESSION_SECONDS).toBe(30 * 24 * 60 * 60);
+    expect(await renewSession(db, result.token)).toEqual({
+      renewed: false,
+      expiresAt: result.expiresAt,
+    });
+    await db.session.update({
+      where: { tokenHash: digestToken(result.token) },
+      data: { expiresAt: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000) },
+    });
+    const renewed = await renewSession(db, result.token);
+    expect(renewed?.renewed).toBe(true);
+    expect(renewed!.expiresAt.getTime() - Date.now()).toBeGreaterThan(
+      (SESSION_SECONDS - 5) * 1000,
+    );
+    expect(await sessionUser(db, result.token)).toMatchObject({ id: user.id });
+    await revokeSession(db, result.token);
+    expect(await renewSession(db, result.token)).toBeNull();
+    expect(await sessionUser(db, result.token)).toBeNull();
+  });
+  it("never renews expired, missing or forged sessions", async () => {
+    const user = await db.user.findUniqueOrThrow({ where: { email } });
+    const result = await createSession(db, user.id);
+    await db.session.update({
+      where: { tokenHash: digestToken(result.token) },
+      data: { expiresAt: new Date(Date.now() - 1000) },
+    });
+    for (const token of [result.token, undefined, "invalid", "0".repeat(64)])
+      expect(await renewSession(db, token)).toBeNull();
   });
   it("throttles attempts in the database", async () => {
     const account = `${crypto.randomUUID()}@example.test`;

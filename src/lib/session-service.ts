@@ -5,7 +5,8 @@ import {
   digestToken,
   newSessionToken,
 } from "@/lib/password";
-export const SESSION_SECONDS = 60 * 60 * 24 * 7;
+import { SESSION_SECONDS, SESSION_RENEWAL_SECONDS } from "@/lib/session-cookie";
+export { SESSION_SECONDS } from "@/lib/session-cookie";
 export async function consumeAuthAttempt(db: PrismaClient, email: string) {
   const counters = await db.$transaction(async (tx) => {
     const counts: number[] = [];
@@ -54,6 +55,32 @@ export async function revokeSession(
 ) {
   if (token)
     await db.session.deleteMany({ where: { tokenHash: digestToken(token) } });
+}
+export async function renewSession(
+  db: PrismaClient,
+  token: string | undefined,
+) {
+  if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
+  const tokenHash = digestToken(token);
+  const now = new Date();
+  const session = await db.session.findUnique({
+    where: { tokenHash },
+    select: { expiresAt: true },
+  });
+  if (!session || session.expiresAt <= now) return null;
+  // Renew at most once per day, keeping the database and browser expiry aligned.
+  if (
+    session.expiresAt.getTime() - now.getTime() >
+    (SESSION_SECONDS - SESSION_RENEWAL_SECONDS) * 1000
+  )
+    return { expiresAt: session.expiresAt, renewed: false };
+  const expiresAt = new Date(now.getTime() + SESSION_SECONDS * 1000);
+  const updated = await db.session.updateMany({
+    where: { tokenHash, expiresAt: { gt: now } },
+    data: { expiresAt },
+  });
+  // An intervening logout/revocation must never recreate a session.
+  return updated.count ? { expiresAt, renewed: true } : null;
 }
 export async function authenticateUser(
   db: PrismaClient,

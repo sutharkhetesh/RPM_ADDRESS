@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
-export default function Home() {
-  redirect("/signup");
+import { getUser } from "@/lib/auth";
+export default async function Home() {
+  redirect((await getUser()) ? "/dashboard" : "/signup");
 }

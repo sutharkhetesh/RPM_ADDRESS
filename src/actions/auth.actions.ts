@@ -4,11 +4,11 @@ import { authenticationFailure } from "@/lib/database-errors";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { database } from "@/lib/prisma";
-import { SESSION_COOKIE } from "@/lib/auth";
+import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/session-cookie";
 import {
   authenticateUser,
   revokeSession,
-  SESSION_SECONDS,
+  renewSession,
 } from "@/lib/session-service";
 export async function authenticate(mode: "login" | "signup", input: unknown) {
   const parsed = (mode === "signup" ? signupSchema : loginSchema).safeParse(
@@ -34,18 +34,26 @@ export async function authenticate(mode: "login" | "signup", input: unknown) {
     const jar = await cookies();
     const previous = jar.get(SESSION_COOKIE)?.value;
     await revokeSession(database(), previous);
-    jar.set(SESSION_COOKIE, result.token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: SESSION_SECONDS,
-      expires: result.expiresAt,
-    });
+    jar.set(
+      SESSION_COOKIE,
+      result.token,
+      sessionCookieOptions(result.expiresAt),
+    );
   } catch (error) {
     return { error: authenticationFailure(error) };
   }
   redirect("/dashboard");
+}
+export async function refreshSession() {
+  const jar = await cookies();
+  const token = jar.get(SESSION_COOKIE)?.value;
+  const session = await renewSession(database(), token);
+  if (!session) {
+    jar.delete(SESSION_COOKIE);
+    redirect("/login");
+  }
+  if (session.renewed)
+    jar.set(SESSION_COOKIE, token!, sessionCookieOptions(session.expiresAt));
 }
 export async function signOut() {
   const jar = await cookies();
