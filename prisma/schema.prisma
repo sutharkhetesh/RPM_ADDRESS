@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+  BOTH
+}
+
+enum AddressLabel {
+  HOME
+  OFFICE
+  OTHER
+}
+
+model Address {
+  id                String       @id @default(uuid()) @db.Uuid
+  userId            String       @db.Uuid
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName          String       @db.VarChar(120)
+  companyName       String?      @db.VarChar(160)
+  email             String?      @db.VarChar(254)
+  phone             String       @db.VarChar(24)
+  alternatePhone    String?      @db.VarChar(24)
+  addressLine1      String       @db.VarChar(250)
+  addressLine2      String?      @db.VarChar(250)
+  landmark          String?      @db.VarChar(160)
+  city              String       @db.VarChar(100)
+  state             String       @db.VarChar(100)
+  country           String       @default("India") @db.VarChar(100)
+  postalCode        String       @db.VarChar(20)
+  addressType       AddressType  @default(SHIPPING)
+  addressLabel      AddressLabel @default(HOME)
+  isDefaultShipping Boolean      @default(false)
+  isDefaultBilling  Boolean      @default(false)
+  notes             String?      @db.VarChar(2000)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([userId, addressType])
+  @@index([userId, addressLabel])
+  @@index([userId, city])
+}
+
+model User {
+  id                    String    @id @default(uuid()) @db.Uuid
+  email                 String    @unique @db.VarChar(254)
+  fullName              String    @db.VarChar(120)
+  onboardingCompletedAt DateTime? @db.Timestamptz(3)
+  passwordHash          String?   @db.VarChar(256)
+  createdAt             DateTime  @default(now())
+  addresses             Address[]
+  sessions              Session[]
+}
+
+model Session {
+  tokenHash String   @id @db.VarChar(64)
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuthRateLimit {
+  key       String   @id @db.VarChar(80)
+  attempts  Int      @default(1)
+  expiresAt DateTime @db.Timestamptz(3)
+
+  @@index([expiresAt])
+}
