@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, LoaderCircle, Check } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Check, Tags } from "lucide-react";
 import {
   addressSchema,
   emptyAddress,
@@ -60,9 +60,14 @@ export function AddressForm({
           }),
         )}
       >
-        <AddressFields form={form} />
         <section className="form-section">
-          <h2 className="font-semibold mb-5">Address preferences</h2>
+          <div className="section-label">
+            <Tags size={19} />
+            <div>
+              <h2>Address type</h2>
+              <p>Choose how you’ll use this address.</p>
+            </div>
+          </div>
           <div className="form-grid">
             <label className="field">
               Address type
@@ -72,34 +77,9 @@ export function AddressForm({
                 <option value="BOTH">Shipping & billing</option>
               </select>
             </label>
-            <label className="field">
-              Address label
-              <select {...form.register("addressLabel")}>
-                <option value="HOME">Home</option>
-                <option value="OFFICE">Office</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </label>
-          </div>
-          <div className="default-options">
-            <label>
-              <input
-                type="checkbox"
-                {...form.register("isDefaultShipping")}
-                disabled={type === "BILLING"}
-              />
-              Set as default shipping address
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                {...form.register("isDefaultBilling")}
-                disabled={type === "SHIPPING"}
-              />
-              Set as default billing address
-            </label>
           </div>
         </section>
+        <AddressFields form={form} />
         <div className="form-footer">
           <p>* Required fields</p>
           <div className="flex gap-3">

@@ -6,7 +6,6 @@ import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   LayoutDashboard,
-  ContactRound,
   Truck,
   ReceiptText,
   Menu,
@@ -20,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 const links = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/addresses", label: "All addresses", icon: ContactRound },
   { href: "/addresses?filter=shipping", label: "Shipping", icon: Truck },
   { href: "/addresses?filter=billing", label: "Billing", icon: ReceiptText },
 ];

@@ -3,11 +3,16 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X, SlidersHorizontal, LoaderCircle } from "lucide-react";
 const filters = [
-  ["", "All addresses"],
   ["shipping", "Shipping"],
   ["billing", "Billing"],
 ];
-export function AddressFilters() {
+export function AddressFilters({
+  basePath = "/addresses",
+  showTabs = true,
+}: {
+  basePath?: string;
+  showTabs?: boolean;
+}) {
   const params = useSearchParams(),
     router = useRouter(),
     [pending, start] = useTransition();
@@ -21,7 +26,7 @@ export function AddressFilters() {
     value ? next.set(key, value) : next.delete(key);
     next.delete("page");
     start(() =>
-      router.replace(`/addresses?${next.toString()}`, { scroll: false }),
+      router.replace(`${basePath}?${next.toString()}`, { scroll: false }),
     );
   }
   useEffect(() => {
@@ -31,17 +36,21 @@ export function AddressFilters() {
   }, [text, urlQuery]);
   return (
     <div className="filters">
-      <div className="filter-tabs" aria-label="Filter addresses">
-        {filters.map(([value, label]) => (
-          <button
-            key={value}
-            onClick={() => update("filter", value)}
-            className={(params.get("filter") ?? "") === value ? "selected" : ""}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {showTabs && (
+        <div className="filter-tabs" aria-label="Filter addresses">
+          {filters.map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => update("filter", value)}
+              className={
+                (params.get("filter") ?? "") === value ? "selected" : ""
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="search-row">
         <div className="search-input">
           <Search size={17} />

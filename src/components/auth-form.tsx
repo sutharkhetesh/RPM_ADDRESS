@@ -91,21 +91,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const signup = mode === "signup";
   return (
     <main className="auth-page">
-      {signup && (
-        <header className="auth-header">
-          <Link
-            href="/login"
-            className="auth-brand-link"
-            aria-label="RPM Eyewear home"
-          >
-            <RpmBrand />
-          </Link>
-          <div className="auth-header-actions">
-            <span>Your address workspace</span>
-            <ThemeToggle />
-          </div>
-        </header>
-      )}
       <div className="auth-content">
         <section className="auth-hero" aria-labelledby="auth-hero-title">
           <div className="auth-hero-top">
@@ -172,12 +157,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           </div>
         </section>
         <section className="auth-form-card" aria-labelledby="auth-title">
-          {!signup && (
-            <div className="auth-form-brand">
-              <RpmBrand />
-              <ThemeToggle />
-            </div>
-          )}
+          <div className="auth-form-brand">
+            <RpmBrand />
+            <ThemeToggle />
+          </div>
           <div className="auth-card-heading">
             <span className="auth-form-kicker">
               {signup ? "GET STARTED" : "YOUR WORKSPACE AWAITS"}
@@ -286,12 +269,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           </p>
         </section>
       </div>
-      {signup && (
-        <footer className="auth-footer">
-          <span>RPM EYEWEAR</span>
-          <span>Less searching. More getting things done.</span>
-        </footer>
-      )}
     </main>
   );
 }

@@ -135,7 +135,7 @@ test("signup → copied shipping/billing → dashboard, CRUD, print, PDF and own
   const id = page.url().split("/").at(-2)!;
   await page.getByLabel(/^City/).fill("Pune");
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
-  await expect(page).toHaveURL(/\/addresses$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(
     page.getByText("Pune, Maharashtra · 400001", { exact: true }).first(),
   ).toBeVisible();
@@ -300,7 +300,7 @@ test("signup opens the dashboard and allows adding the first address directly", 
   await fillAddress(page);
   await page.getByLabel("Address type").selectOption("SHIPPING");
   await page.getByRole("button", { name: "Save address", exact: true }).click();
-  await expect(page).toHaveURL(/\/addresses$/);
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.locator(".table-wrap tbody tr")).toHaveCount(1);
   await page.goto("/dashboard");
   await expect(
@@ -428,4 +428,40 @@ test("theme-aware login design, password visibility and sidebar without account 
     path: "test-results/dashboard-clean-sidebar.png",
     fullPage: true,
   });
+});
+
+test("overview lists all addresses and keeps shipping and billing navigation", async ({
+  page,
+}) => {
+  await signup(page, account("Overview Customer"));
+  await sameAddressSetup(page);
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(
+    nav.getByRole("link", { name: "All addresses", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Recently added" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Your address book" }),
+  ).toBeVisible();
+  await expect(page.locator(".table-wrap tbody tr")).toHaveCount(2);
+  await page.getByLabel("Search addresses").fill("NoMatchOverview123");
+  await expect(page).toHaveURL(/dashboard\?q=NoMatchOverview123/);
+  await expect(
+    page.getByRole("heading", { name: "No addresses found" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Clear filters", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.locator(".table-wrap tbody tr")).toHaveCount(2);
+  for (const type of ["Shipping", "Billing"]) {
+    await nav.getByRole("link", { name: type, exact: true }).click();
+    await expect(page.locator(".table-wrap tbody tr")).toHaveCount(1);
+    await page.getByRole("link", { name: "Add address", exact: true }).click();
+    await expect(page.getByLabel("Address type", { exact: true })).toHaveValue(
+      type.toUpperCase(),
+    );
+  }
+  await page.goto("/addresses");
+  await expect(page).toHaveURL(/\/dashboard$/);
 });

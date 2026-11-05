@@ -14,12 +14,18 @@ import {
 import { requireUser } from "@/lib/auth";
 import { database } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
-import { AddressList } from "@/components/addresses/address-list";
-export default async function Dashboard() {
+import { AddressBook } from "@/components/addresses/address-book";
+import type { SearchParams } from "@/lib/address-query";
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const { filter: _filter, ...params } = await searchParams;
   const user = await requireUser(),
     db = database(),
     where = { userId: user.id };
-  const [total, shipping, billing, defaults, recent] = await db.$transaction([
+  const [total, shipping, billing, defaults] = await db.$transaction([
     db.address.count({ where }),
     db.address.count({
       where: { ...where, addressType: { in: ["SHIPPING", "BOTH"] } },
@@ -33,11 +39,6 @@ export default async function Dashboard() {
         OR: [{ isDefaultShipping: true }, { isDefaultBilling: true }],
       },
     }),
-    db.address.findMany({
-      where,
-      orderBy: [{ createdAt: "desc" }, { id: "asc" }],
-      take: 5,
-    }),
   ]);
   const stats = [
     {
@@ -46,7 +47,7 @@ export default async function Dashboard() {
       icon: ContactRound,
       detail: "Every destination, in one place",
       color: "green",
-      href: "/addresses",
+      href: "/dashboard#address-book",
     },
     {
       label: "Shipping addresses",
@@ -108,7 +109,7 @@ export default async function Dashboard() {
             <br />
             with every address securely saved to your account.
           </p>
-          <Link href="/addresses" className="banner-link">
+          <Link href="#address-book" className="banner-link">
             Explore your address book <ArrowRight size={16} />
           </Link>
         </div>
@@ -149,22 +150,7 @@ export default async function Dashboard() {
           </Link>
         ))}
       </section>
-      <section className="panel recent-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Recently added</h2>
-            <p>Your latest destinations, at a glance.</p>
-          </div>
-          <Link
-            href="/addresses"
-            className="text-sm font-medium flex gap-2 items-center text-red-700"
-          >
-            View all addresses
-            <ArrowRight size={15} />
-          </Link>
-        </div>
-        <AddressList addresses={recent} compact />
-      </section>
+      <AddressBook params={params} overview />
       <section className="tips-grid">
         <div className="tip-card">
           <span className="tip-icon">
