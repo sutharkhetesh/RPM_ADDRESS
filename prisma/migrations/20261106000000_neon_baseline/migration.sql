@@ -34,6 +34,37 @@ CREATE TABLE "Address" (
     CONSTRAINT "Address_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "User" (
+    "id" UUID NOT NULL,
+    "email" VARCHAR(254) NOT NULL,
+    "fullName" VARCHAR(120) NOT NULL,
+    "onboardingCompletedAt" TIMESTAMPTZ(3),
+    "passwordHash" VARCHAR(256),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Session" (
+    "tokenHash" VARCHAR(64) NOT NULL,
+    "userId" UUID NOT NULL,
+    "expiresAt" TIMESTAMPTZ(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("tokenHash")
+);
+
+-- CreateTable
+CREATE TABLE "AuthRateLimit" (
+    "key" VARCHAR(80) NOT NULL,
+    "attempts" INTEGER NOT NULL DEFAULT 1,
+    "expiresAt" TIMESTAMPTZ(3) NOT NULL,
+
+    CONSTRAINT "AuthRateLimit_pkey" PRIMARY KEY ("key")
+);
+
 -- CreateIndex
 CREATE INDEX "Address_userId_createdAt_idx" ON "Address"("userId", "createdAt");
 
@@ -46,15 +77,33 @@ CREATE INDEX "Address_userId_addressLabel_idx" ON "Address"("userId", "addressLa
 -- CreateIndex
 CREATE INDEX "Address_userId_city_idx" ON "Address"("userId", "city");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
--- Defense in depth: defaults remain unique even outside the application.
+-- CreateIndex
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
+
+-- CreateIndex
+CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "AuthRateLimit_expiresAt_idx" ON "AuthRateLimit"("expiresAt");
+
+-- AddForeignKey
+ALTER TABLE "Address" ADD CONSTRAINT "Address_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- Preserve defaults and type checks that Prisma's schema cannot express.
 CREATE UNIQUE INDEX "Address_one_default_shipping" ON "Address" ("userId") WHERE "isDefaultShipping" = true;
 CREATE UNIQUE INDEX "Address_one_default_billing" ON "Address" ("userId") WHERE "isDefaultBilling" = true;
 ALTER TABLE "Address" ADD CONSTRAINT "Address_shipping_type" CHECK (NOT "isDefaultShipping" OR "addressType" IN ('SHIPPING', 'BOTH'));
 ALTER TABLE "Address" ADD CONSTRAINT "Address_billing_type" CHECK (NOT "isDefaultBilling" OR "addressType" IN ('BILLING', 'BOTH'));
--- Supabase owns the identity lifecycle; no duplicate application user table.
-ALTER TABLE "Address" ADD CONSTRAINT "Address_userId_fkey" FOREIGN KEY ("userId") REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- Only the owning application role accesses private account and address data.
 ALTER TABLE "Address" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own addresses" ON "Address" FOR ALL TO authenticated USING ((SELECT auth.uid()) = "userId") WITH CHECK ((SELECT auth.uid()) = "userId");
-REVOKE ALL ON "Address" FROM anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON "Address" TO authenticated;
+ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Session" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "AuthRateLimit" ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON "Address", "User", "Session", "AuthRateLimit" FROM PUBLIC;

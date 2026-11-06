@@ -1,4 +1,8 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import {
+  getDefaultAutoSelectFamilyAttemptTimeout,
+  setDefaultAutoSelectFamilyAttemptTimeout,
+} from "node:net";
 import { resolve } from "node:path";
 
 /** Shared by the driver, migrations and diagnostics. @param {string} connection */
@@ -9,9 +13,9 @@ export function databaseUrl(connection) {
   );
   if (!local) {
     url.searchParams.set("sslmode", "verify-full");
-    const caPath = "certs/supabase-ca.crt";
-    if (!url.searchParams.has("sslrootcert") && existsSync(caPath))
-      url.searchParams.set("sslrootcert", resolve(caPath));
+    // Cross-region connections may need longer than Node's 250 ms per address.
+    if (getDefaultAutoSelectFamilyAttemptTimeout() < 2000)
+      setDefaultAutoSelectFamilyAttemptTimeout(2000);
   }
   return url.toString();
 }
@@ -31,7 +35,10 @@ export function databasePoolConfig(connection) {
       ? undefined
       : {
           rejectUnauthorized: true,
-          ...(caPath ? { ca: readFileSync(resolve(caPath), "utf8") } : {}),
+          ...(caPath && caPath !== "system"
+            ? { ca: readFileSync(resolve(caPath), "utf8") }
+            : {}),
         },
+    enableChannelBinding: url.searchParams.get("channel_binding") === "require",
   };
 }

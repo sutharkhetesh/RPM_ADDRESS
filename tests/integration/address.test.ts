@@ -208,11 +208,11 @@ describe("Real PostgreSQL address lifecycle", () => {
     await db.user.delete({ where: { id: temp } });
     expect(await db.address.count({ where: { userId: temp } })).toBe(0);
   });
-  it("denies Data API roles direct access to private addresses", async () => {
+  it("denies unprivileged roles direct access to private addresses", async () => {
     await saveForUser(db, owner, input);
     await expect(
       db.$transaction(async (tx) => {
-        await tx.$executeRaw`SET LOCAL ROLE authenticated`;
+        await tx.$executeRaw`SET LOCAL ROLE app_guest`;
         return tx.address.findMany();
       }),
     ).rejects.toThrow();

@@ -1,12 +1,12 @@
 import "dotenv/config";
 import pg from "pg";
-import { databaseUrl } from "../src/lib/database-url.mjs";
+import { databasePoolConfig } from "../src/lib/database-url.mjs";
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is missing from .env.");
   process.exit(1);
 }
 const client = new pg.Client({
-  connectionString: databaseUrl(process.env.DATABASE_URL),
+  ...databasePoolConfig(process.env.DATABASE_URL),
   connectionTimeoutMillis: 10000,
 });
 try {
@@ -22,7 +22,7 @@ try {
     error.code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE"
   )
     console.error(
-      "Download the CA certificate from Supabase Database Settings → SSL Configuration to certs/supabase-ca.crt.",
+      "Check the database certificate chain and any explicit sslrootcert setting. Neon uses the system's trusted certificate authorities.",
     );
   process.exitCode = 1;
 } finally {

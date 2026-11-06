@@ -6,7 +6,9 @@ export default defineConfig({
   migrations: { path: "prisma/migrations" },
   datasource: {
     url: databaseUrl(
-      process.env.DATABASE_URL ?? "postgresql://localhost:5432/addressly",
+      process.env.DIRECT_URL ||
+        process.env.DATABASE_URL ||
+        "postgresql://localhost:5432/addressly",
     ),
   },
 });

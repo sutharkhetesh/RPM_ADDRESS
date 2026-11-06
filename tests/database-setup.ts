@@ -36,15 +36,16 @@ export async function createTestDatabase() {
     const { Client } = await import("pg");
     const client = new Client({ connectionString: url });
     await client.connect();
-    // Supabase identity contracts, in an isolated test cluster only.
-    await client.query(
-      `CREATE SCHEMA auth; CREATE TABLE auth.users(id uuid PRIMARY KEY, email text); CREATE ROLE anon; CREATE ROLE authenticated; CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; GRANT USAGE ON SCHEMA auth TO authenticated;`,
-    );
+    // A generic unprivileged role for isolation tests; no hosted-auth schema.
+    await client.query("CREATE ROLE app_guest");
     await client.end();
     execFileSync(
       process.execPath,
       ["node_modules/prisma/build/index.js", "migrate", "deploy"],
-      { env: { ...process.env, DATABASE_URL: url }, stdio: "pipe" },
+      {
+        env: { ...process.env, DATABASE_URL: url, DIRECT_URL: url },
+        stdio: "pipe",
+      },
     );
     return {
       url,

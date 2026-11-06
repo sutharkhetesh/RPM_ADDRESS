@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const files = vi.hoisted(() => ({ exists: vi.fn(), read: vi.fn() }));
+const files = vi.hoisted(() => ({ read: vi.fn() }));
 vi.mock("node:fs", () => ({
-  existsSync: files.exists,
   readFileSync: files.read,
 }));
 import { databasePoolConfig, databaseUrl } from "@/lib/database-url.mjs";
@@ -9,7 +8,6 @@ import { databasePoolConfig, databaseUrl } from "@/lib/database-url.mjs";
 describe("Database TLS configuration", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    files.exists.mockReturnValue(false);
     files.read.mockReturnValue("trusted-ca");
   });
   it("verifies remote certificates even when no custom CA exists", () => {
@@ -21,19 +19,26 @@ describe("Database TLS configuration", () => {
       false,
     );
   });
-  it("loads the default Supabase CA when present", () => {
-    files.exists.mockReturnValue(true);
-    expect(databasePoolConfig("postgresql://db.example.test/app").ssl).toEqual({
+  it("uses system trust for Neon without loading a provider-specific CA", () => {
+    const connection =
+      "postgresql://user:secret@ep-rpm-pooler.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+    expect(databasePoolConfig(connection).ssl).toEqual({
       rejectUnauthorized: true,
-      ca: "trusted-ca",
     });
-    expect(files.read).toHaveBeenCalledWith(
-      expect.stringContaining("certs/supabase-ca.crt"),
-      "utf8",
-    );
+    expect(databasePoolConfig(connection).enableChannelBinding).toBe(true);
+    expect(
+      new URL(databaseUrl(connection)).searchParams.has("sslrootcert"),
+    ).toBe(false);
+    expect(files.read).not.toHaveBeenCalled();
+  });
+  it("supports an explicit system trust setting", () => {
+    expect(
+      databasePoolConfig("postgresql://db.example.test/app?sslrootcert=system")
+        .ssl,
+    ).toEqual({ rejectUnauthorized: true });
+    expect(files.read).not.toHaveBeenCalled();
   });
   it("honors an explicitly configured CA instead of replacing it", () => {
-    files.exists.mockReturnValue(true);
     const connection =
       "postgresql://db.example.test/app?sslrootcert=/tmp/custom-ca.crt";
     expect(

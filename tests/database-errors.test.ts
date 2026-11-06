@@ -9,7 +9,7 @@ describe("Safe authentication diagnostics", () => {
           { code: "SELF_SIGNED_CERT_IN_CHAIN" },
         ),
       ),
-    ).toContain("certs/supabase-ca.crt");
+    ).toContain("sslrootcert");
   });
   it("finds TLS failures wrapped by the Prisma pg adapter", () => {
     expect(

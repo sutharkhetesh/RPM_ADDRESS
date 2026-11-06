@@ -25,7 +25,7 @@ export function authenticationFailure(error: unknown): string {
       text,
     )
   ) {
-    return "Database TLS verification failed. Save your Supabase CA certificate as certs/supabase-ca.crt, then restart the app.";
+    return "Database TLS verification failed. Check the database certificate chain and any sslrootcert setting, then restart the app.";
   }
   if (/\bP2021\b|\bP2022\b|\b42P01\b|\b42703\b/.test(text)) {
     return "Database tables are missing or outdated. Run npm run db:deploy, then restart the app.";

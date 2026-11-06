@@ -8,15 +8,16 @@ export default function Setup() {
         <span className="eyebrow">WELCOME TO ADDRESSLY</span>
         <h1>Your workspace starts here.</h1>
         <p className="text-muted-foreground">
-          Connect your Supabase project to securely manage your real addresses.
+          Connect your Neon database to securely manage your real addresses.
         </p>
         <ol className="my-6 space-y-4 text-sm leading-6">
           <li>
             1. Copy <code>.env.example</code> to <code>.env</code>.
           </li>
-          <li>2. Add your Supabase connection as DATABASE_URL in .env.</li>
+          <li>2. Add your Neon pooled connection as DATABASE_URL in .env.</li>
+          <li>3. Add your Neon direct connection as DIRECT_URL in .env.</li>
           <li>
-            3. Run <code>npm run db:deploy</code>, then restart the app.
+            4. Run <code>npm run db:deploy</code>, then restart the app.
           </li>
         </ol>
         <p className="text-sm text-muted-foreground mb-6">
