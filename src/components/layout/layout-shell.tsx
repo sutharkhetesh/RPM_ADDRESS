@@ -3,7 +3,7 @@ import Link from "next/link";
 import { RpmBrand } from "@/components/rpm-brand";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   LayoutDashboard,
   Truck,

@@ -9,7 +9,7 @@ import {
   authenticateUser,
   revokeSession,
   renewSession,
-} from "@/lib/session-service";
+} from "@/lib/services/session-service";
 export async function authenticate(mode: "login" | "signup", input: unknown) {
   const parsed = (mode === "signup" ? signupSchema : loginSchema).safeParse(
     input,

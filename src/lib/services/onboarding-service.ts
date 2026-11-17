@@ -1,16 +1,6 @@
-import { z } from "zod";
 import type { PrismaClient } from "@/generated/prisma/client";
 import { addressSchema } from "@/lib/validations/address";
-export const onboardingSchema = z
-  .object({
-    shipping: addressSchema,
-    billing: addressSchema.optional(),
-    sameAsShipping: z.boolean(),
-  })
-  .refine((v) => v.sameAsShipping || Boolean(v.billing), {
-    path: ["billing"],
-    message: "Enter a billing address",
-  });
+import { onboardingSchema } from "@/lib/validations/onboarding";
 export async function completeAddressSetup(
   db: PrismaClient,
   userId: string,

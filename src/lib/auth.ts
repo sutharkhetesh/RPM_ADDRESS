@@ -3,9 +3,8 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { database } from "@/lib/prisma";
-import { sessionUser } from "@/lib/session-service";
+import { sessionUser } from "@/lib/services/session-service";
 import { SESSION_COOKIE } from "@/lib/session-cookie";
-export { SESSION_COOKIE } from "@/lib/session-cookie";
 export const getUser = cache(async function getUser() {
   if (!process.env.DATABASE_URL) return null;
   const jar = await cookies();

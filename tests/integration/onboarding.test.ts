@@ -1,9 +1,9 @@
 import { beforeAll, afterAll, describe, it, expect, inject } from "vitest";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { completeAddressSetup } from "@/lib/onboarding-service";
+import { completeAddressSetup } from "@/lib/services/onboarding-service";
 import { emptyAddress } from "@/lib/validations/address";
-import { saveForUser } from "@/lib/address-service";
+import { saveForUser } from "@/lib/services/address-service";
 let db: PrismaClient;
 const users: string[] = [];
 const shipping = {

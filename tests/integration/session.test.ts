@@ -8,8 +8,8 @@ import {
   consumeAuthAttempt,
   createSession,
   renewSession,
-  SESSION_SECONDS,
-} from "@/lib/session-service";
+} from "@/lib/services/session-service";
+import { SESSION_SECONDS } from "@/lib/session-cookie";
 import { digestToken, verifyPassword } from "@/lib/password";
 let db: PrismaClient;
 const email = `${crypto.randomUUID()}@example.test`,

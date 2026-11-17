@@ -72,15 +72,25 @@ The retired migration history, provider-specific certificate and old connection 
 - Prisma uses a privileged connection, so all queries explicitly scope user ownership. RLS and revoked public table permissions provide additional protection for application tables.
 
 ```text
-src/app/(auth)/                    Login/signup
-src/app/(onboarding)/onboarding/   Optional shipping/billing setup
-src/app/(dashboard)/              Protected dashboard and address CRUD
-src/app/(print)/                  Protected print/PDF preview
+src/app/                         Routes, layouts and global styles
+  (auth)/                        Login/signup
+  (onboarding)/onboarding/        Optional shipping/billing setup
+  (dashboard)/                   Protected dashboard and address CRUD
+  (print)/                       Protected print/PDF preview
 src/actions/                     Auth, onboarding and address Server Actions
-src/components/addresses/        Shared fields, forms, setup wizard, lists, print
-src/lib/session-service.ts       Existing account/session authentication
-src/lib/onboarding-service.ts    Atomic, idempotent address setup
-src/lib/validations/              Shared Zod address and account schemas
+src/components/
+  addresses/                     Address fields, forms, setup, lists and print
+  auth/                          Authentication form and session renewal
+  layout/                        Workspace navigation and shell
+  theme/                         Theme controls
+  ui/                            Reusable UI primitives
+  providers.tsx                  App-wide theme and toast providers
+  rpm-brand.tsx                  Shared branding
+src/lib/
+  services/                      Address, onboarding and session operations
+  validations/                   Shared Zod address, onboarding and auth schemas
+  auth.ts                        Server-side identity and route guards
+  prisma.ts                      Shared database client
 prisma/schema.prisma
 prisma/migrations/
 tests/                           Unit, real PostgreSQL and browser tests

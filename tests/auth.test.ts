@@ -6,7 +6,9 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/prisma", () => ({ database: () => mocks.db }));
-vi.mock("@/lib/session-service", () => ({ sessionUser: mocks.sessionUser }));
+vi.mock("@/lib/services/session-service", () => ({
+  sessionUser: mocks.sessionUser,
+}));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: mocks.get }) }));
 vi.mock("next/navigation", () => ({
   redirect: (path: string) => {

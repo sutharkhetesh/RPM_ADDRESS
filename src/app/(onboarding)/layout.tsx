@@ -1,4 +1,4 @@
-import { SessionRenewal } from "@/components/session-renewal";
+import { SessionRenewal } from "@/components/auth/session-renewal";
 
 export default function OnboardingLayout({
   children,

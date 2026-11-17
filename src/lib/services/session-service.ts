@@ -6,7 +6,6 @@ import {
   newSessionToken,
 } from "@/lib/password";
 import { SESSION_SECONDS, SESSION_RENEWAL_SECONDS } from "@/lib/session-cookie";
-export { SESSION_SECONDS } from "@/lib/session-cookie";
 export async function consumeAuthAttempt(db: PrismaClient, email: string) {
   const counters = await db.$transaction(async (tx) => {
     const counts: number[] = [];
@@ -128,6 +127,5 @@ export async function authenticateUser(
       return { error: "Incorrect password. Please try again." } as const;
     user = account;
   }
-  if (!user) return { error: "Unable to sign in." } as const;
   return createSession(db, user.id);
 }

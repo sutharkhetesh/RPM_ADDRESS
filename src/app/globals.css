@@ -881,8 +881,37 @@ tbody tr:hover {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 12%, transparent);
 }
-.field input[aria-invalid="true"] {
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"] {
   border-color: #dc6666;
+}
+.state-select-wrap {
+  position: relative;
+  min-width: 0;
+}
+.state-select-wrap select {
+  appearance: none;
+  padding-right: 40px;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.state-select-wrap > svg {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--muted-foreground);
+}
+.state-select-wrap .state-select-placeholder {
+  color: var(--muted-foreground);
+}
+.state-select-wrap option {
+  background: var(--card);
+  color: var(--foreground);
+}
+.state-select-wrap select:disabled {
+  cursor: not-allowed;
 }
 .field-error {
   display: block;

@@ -1,7 +1,7 @@
 "use server";
 import { requireUser } from "@/lib/auth";
 import { database } from "@/lib/prisma";
-import { saveForUser, deleteForUser } from "@/lib/address-service";
+import { saveForUser, deleteForUser } from "@/lib/services/address-service";
 import { revalidatePath } from "next/cache";
 export async function saveAddress(input: unknown, id?: string) {
   const user = await requireUser();

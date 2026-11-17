@@ -11,7 +11,7 @@ import {
 import type { Address } from "@/generated/prisma/client";
 import { AddressActions } from "./address-actions";
 import { Button } from "@/components/ui/button";
-export function TypeBadge({ type }: { type: string }) {
+function TypeBadge({ type }: { type: string }) {
   return (
     <span
       className={`badge ${type === "BILLING" ? "badge-purple" : type === "BOTH" ? "badge-blue" : "badge-green"}`}
@@ -24,7 +24,7 @@ export function TypeBadge({ type }: { type: string }) {
     </span>
   );
 }
-export function DefaultBadge({
+function DefaultBadge({
   a,
 }: {
   a: Pick<Address, "isDefaultShipping" | "isDefaultBilling">;

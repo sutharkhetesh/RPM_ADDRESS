@@ -22,7 +22,11 @@ export const addressSchema = z
     addressLine2: optional(250),
     landmark: optional(160),
     city: z.string().trim().min(1).max(100),
-    state: z.string().trim().min(1).max(100),
+    state: z
+      .string()
+      .trim()
+      .min(1, "Select or enter a state / region")
+      .max(100),
     country: z.string().trim().min(1).max(100),
     postalCode: z
       .string()

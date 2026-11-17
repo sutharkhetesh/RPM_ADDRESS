@@ -1,7 +1,7 @@
 "use server";
 import { requireUser } from "@/lib/auth";
 import { database } from "@/lib/prisma";
-import { completeAddressSetup } from "@/lib/onboarding-service";
+import { completeAddressSetup } from "@/lib/services/onboarding-service";
 import { authenticationFailure } from "@/lib/database-errors";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";

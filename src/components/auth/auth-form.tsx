@@ -3,7 +3,7 @@ import { useRef, useState, useTransition } from "react";
 import { unstable_rethrow } from "next/navigation";
 import Link from "next/link";
 import { RpmBrand } from "@/components/rpm-brand";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   ArrowRight,
   LoaderCircle,

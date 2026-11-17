@@ -1,6 +1,7 @@
 import { it, expect, inject } from "vitest";
 import { Client } from "pg";
 import { execFileSync } from "node:child_process";
+import { readdirSync } from "node:fs";
 
 it("deploys to plain PostgreSQL and preserves data when deployed again", async () => {
   const url = new URL(inject("databaseUrl"));
@@ -58,9 +59,18 @@ it("deploys to plain PostgreSQL and preserves data when deployed again", async (
         .rows[0].count,
     ).toBe(1);
     expect(
-      (await client.query('SELECT migration_name FROM "_prisma_migrations"'))
-        .rows,
-    ).toEqual([{ migration_name: "20261106000000_neon_baseline" }]);
+      (
+        await client.query(
+          'SELECT migration_name FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name',
+        )
+      ).rows,
+    ).toEqual(
+      readdirSync("prisma/migrations", { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort()
+        .map((migration_name) => ({ migration_name })),
+    );
     expect(
       (await client.query("SELECT to_regnamespace('auth') IS NULL AS plain"))
         .rows[0].plain,

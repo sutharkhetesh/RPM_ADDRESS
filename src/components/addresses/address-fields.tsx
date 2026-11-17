@@ -1,6 +1,6 @@
 "use client";
-import { UserRound, MapPin } from "lucide-react";
-import type { UseFormReturn } from "react-hook-form";
+import { ChevronDown, UserRound, MapPin } from "lucide-react";
+import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { AddressInput } from "@/lib/validations/address";
 const inputAttributes: Partial<
   Record<keyof AddressInput, { autoComplete?: string; maxLength: number }>
@@ -65,6 +65,14 @@ export function AddressFields({
     register,
     formState: { errors },
   } = form;
+  const [country, state] = useWatch({
+    control: form.control,
+    name: ["country", "state"],
+  });
+  const isIndia = country?.trim().toLowerCase() === "india";
+  const hasSavedState = Boolean(
+    state && !indiaStatesAndTerritories.includes(state),
+  );
   function field(
     name: keyof AddressInput,
     label: string,
@@ -148,24 +156,55 @@ export function AddressFields({
           {field("landmark", "Landmark", false, "Near a recognizable place")}
           {field("city", "City", true, "City")}
           <div className="field">
-            <label htmlFor={`${prefix}-state`}>State / Union territory</label>
-            <input
-              id={`${prefix}-state`}
-              list={`${prefix}-india-states`}
-              {...register("state")}
-              {...inputAttributes.state}
-              required
-              placeholder="Search or select a state"
-              aria-invalid={!!errors.state}
-              aria-describedby={
-                errors.state ? `${prefix}-state-error` : undefined
-              }
-            />
-            <datalist id={`${prefix}-india-states`}>
-              {indiaStatesAndTerritories.map((state) => (
-                <option key={state} value={state} />
-              ))}
-            </datalist>
+            <label htmlFor={`${prefix}-state`}>
+              {isIndia
+                ? "State / Union territory"
+                : "State / Province / Region"}
+              <span aria-hidden="true" className="text-red-700">
+                {" "}
+                *
+              </span>
+            </label>
+            {isIndia ? (
+              <div className="state-select-wrap">
+                <select
+                  id={`${prefix}-state`}
+                  {...register("state")}
+                  autoComplete="address-level1"
+                  required
+                  aria-invalid={!!errors.state}
+                  aria-describedby={
+                    errors.state ? `${prefix}-state-error` : undefined
+                  }
+                  className={!state ? "state-select-placeholder" : undefined}
+                >
+                  <option value="" disabled>
+                    Select state / union territory
+                  </option>
+                  {hasSavedState && (
+                    <option value={state}>{state} (saved value)</option>
+                  )}
+                  {indiaStatesAndTerritories.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={17} aria-hidden="true" />
+              </div>
+            ) : (
+              <input
+                id={`${prefix}-state`}
+                {...register("state")}
+                {...inputAttributes.state}
+                required
+                placeholder="Enter state, province or region"
+                aria-invalid={!!errors.state}
+                aria-describedby={
+                  errors.state ? `${prefix}-state-error` : undefined
+                }
+              />
+            )}
             {errors.state && (
               <span id={`${prefix}-state-error`} className="field-error">
                 {errors.state.message}

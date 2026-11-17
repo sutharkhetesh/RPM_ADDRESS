@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { saveForUser, deleteForUser } from "@/lib/address-service";
+import { saveForUser, deleteForUser } from "@/lib/services/address-service";
 import { addressQuery } from "@/lib/address-query";
 import { emptyAddress } from "@/lib/validations/address";
 const owner = crypto.randomUUID(),

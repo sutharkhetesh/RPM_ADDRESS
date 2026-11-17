@@ -45,7 +45,7 @@ async function fillAddress(
     .getByRole("textbox", { name: "Address line 1", exact: true })
     .fill(street);
   await page.getByLabel(/^City/).fill(city);
-  await page.getByLabel("State / province").fill(state);
+  await page.getByLabel("State / Union territory").selectOption(state);
   await page.getByLabel("Postal / PIN code").fill(pin);
 }
 async function sameAddressSetup(page: Page) {
