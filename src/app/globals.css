@@ -808,6 +808,54 @@ tbody tr:hover {
   font-size: 13px;
   font-weight: 500;
 }
+.address-label-field {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.address-label-field legend {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 7px;
+}
+.address-label-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.address-label-option {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+}
+.address-label-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.address-label-option:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--card));
+}
+.address-label-option:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  outline-offset: 2px;
+}
 .field input:not([type="checkbox"]),
 .field select,
 .field textarea {

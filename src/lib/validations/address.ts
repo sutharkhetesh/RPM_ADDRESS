@@ -31,7 +31,7 @@ export const addressSchema = z
       .max(20)
       .regex(/^[a-zA-Z0-9 -]+$/, "Enter a valid postal code"),
     addressType: z.enum(["SHIPPING", "BILLING", "BOTH"]),
-    addressLabel: z.enum(["HOME", "OFFICE", "OTHER"]),
+    addressLabel: z.enum(["HOME", "WORK", "OFFICE", "OTHER"]),
     isDefaultShipping: z.boolean(),
     isDefaultBilling: z.boolean(),
     notes: optional(2000),

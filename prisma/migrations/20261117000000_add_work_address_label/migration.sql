@@ -1,0 +1,1 @@
+ALTER TYPE "AddressLabel" ADD VALUE 'WORK';

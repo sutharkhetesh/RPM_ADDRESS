@@ -148,7 +148,9 @@ export function AddressList({
                       ) : (
                         <House size={11} />
                       )}{" "}
-                      {a.addressLabel.toLowerCase()} · {a.country}
+                      {a.addressLabel.charAt(0) +
+                        a.addressLabel.slice(1).toLowerCase()}{" "}
+                      · {a.country}
                     </small>
                   </div>
                 </td>
@@ -185,6 +187,9 @@ export function AddressList({
               </div>
               <TypeBadge type={a.addressType} />
             </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              {a.addressLabel.charAt(0) + a.addressLabel.slice(1).toLowerCase()}
+            </p>
             <p className="text-sm leading-6 my-4">
               {a.addressLine1}
               {a.addressLine2 && `, ${a.addressLine2}`}

@@ -16,6 +16,44 @@ const inputAttributes: Partial<
   postalCode: { autoComplete: "postal-code", maxLength: 20 },
   country: { autoComplete: "country-name", maxLength: 100 },
 };
+const indiaStatesAndTerritories = [
+  "Andaman and Nicobar Islands",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Ladakh",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+];
 export function AddressFields({
   form,
   prefix = "address",
@@ -109,9 +147,55 @@ export function AddressFields({
           )}
           {field("landmark", "Landmark", false, "Near a recognizable place")}
           {field("city", "City", true, "City")}
-          {field("state", "State / province", true, "State")}
+          <div className="field">
+            <label htmlFor={`${prefix}-state`}>State / Union territory</label>
+            <input
+              id={`${prefix}-state`}
+              list={`${prefix}-india-states`}
+              {...register("state")}
+              {...inputAttributes.state}
+              required
+              placeholder="Search or select a state"
+              aria-invalid={!!errors.state}
+              aria-describedby={
+                errors.state ? `${prefix}-state-error` : undefined
+              }
+            />
+            <datalist id={`${prefix}-india-states`}>
+              {indiaStatesAndTerritories.map((state) => (
+                <option key={state} value={state} />
+              ))}
+            </datalist>
+            {errors.state && (
+              <span id={`${prefix}-state-error`} className="field-error">
+                {errors.state.message}
+              </span>
+            )}
+          </div>
           {field("postalCode", "Postal / PIN code", true, "e.g. 400001")}
           {field("country", "Country", true, "India")}
+          <fieldset className="address-label-field">
+            <legend>Address label</legend>
+            <div className="address-label-options">
+              {(
+                [
+                  ["HOME", "Home"],
+                  ["WORK", "Work"],
+                  ["OFFICE", "Office"],
+                  ["OTHER", "Other"],
+                ] as const
+              ).map(([value, label]) => (
+                <label className="address-label-option" key={value}>
+                  <input
+                    type="radio"
+                    value={value}
+                    {...register("addressLabel")}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
         </div>
       </section>
     </>
