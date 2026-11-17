@@ -180,7 +180,6 @@ export function AddressFields({
               {(
                 [
                   ["HOME", "Home"],
-                  ["WORK", "Work"],
                   ["OFFICE", "Office"],
                   ["OTHER", "Other"],
                 ] as const

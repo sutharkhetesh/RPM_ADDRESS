@@ -15,7 +15,6 @@ enum AddressType {
 
 enum AddressLabel {
   HOME
-  WORK
   OFFICE
   OTHER
 }
